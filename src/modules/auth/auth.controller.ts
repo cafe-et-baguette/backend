@@ -101,9 +101,7 @@ export class AuthController {
 
       const user = await this.authService.findOne({ email: data['email'] });
 
-
       const { password, ...result } = user['_doc'];
-
 
       return result;
     } catch (e) {
