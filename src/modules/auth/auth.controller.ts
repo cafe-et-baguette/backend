@@ -92,7 +92,6 @@ export class AuthController {
   async user(@Req() request: Request) {
     try {
       const cookie = request.cookies['jwt'];
-
       const data = await this.jwtService.verifyAsync(cookie);
 
       if (!data) {
@@ -101,7 +100,7 @@ export class AuthController {
 
       const user = await this.authService.findOne({ email: data['email'] });
 
-      const { password, ...result } = user;
+      const { password, ...result } = user['_doc'];
 
       return result;
     } catch (e) {
