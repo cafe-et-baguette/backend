@@ -39,8 +39,8 @@ export class ChatRoomController {
     return this.chatRoomService.getUsersInRoom(id);
   }
 
-  @Post("add-message")
-  addMessage(@Body() addMessageDto: AddMessageDto) {
-    this.chatRoomService.addMessage(addMessageDto.userId, addMessageDto.msg);
-  }
+  // @Post("add-message")
+  // addMessage(@Body() addMessageDto: AddMessageDto) {
+  //   this.chatRoomService.addMessage(addMessageDto.userId, addMessageDto.msg);
+  // }
 }
