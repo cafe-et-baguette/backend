@@ -4,14 +4,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChatRoomModule } from './modules/chatroom/chatroom.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost/nest'),
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGO_URI),
     AuthModule,
     ChatRoomModule,
   ],
-
   controllers: [AppController],
   providers: [AppService],
 })
