@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [18.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -25,7 +25,11 @@ jobs:
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.8.0
         with:
-          mongodb-version: "6.0"
+          mongodb-version: '6.0'
+
+      - name: Copy .env.sample to .env
+        run: |
+          cp .env.sample .env
 
       - name: Install packages
         run: |
@@ -34,7 +38,6 @@ jobs:
       - name: Build
         run: |
           yarn build
-
 
       - name: E2E test
         run: |
