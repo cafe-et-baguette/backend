@@ -2,13 +2,12 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Schema as MongooseSchema } from "mongoose";
 
 export type ChatRoomDocument = ChatRoom & Document;
-
 @Schema()
 export class Message {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: "User" })
-  user: MongooseSchema.Types.ObjectId;
+  userId: MongooseSchema.Types.ObjectId;
   @Prop({ required: true })
-  message: string;
+  content: string;
   @Prop({ required: true })
   createdDate: Date;
 }

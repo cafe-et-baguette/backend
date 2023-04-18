@@ -10,7 +10,6 @@ export class ChatRoomService {
   constructor(
     @InjectModel(ChatRoom.name) private chatRoomModel: Model<ChatRoom>,
     @InjectModel(User.name) private userModel: Model<User>,
-    @InjectModel("message") private messageModel: Model<Message>,
   ) {}
 
   async create(chatRoomDto: ChatRoomDto): Promise<ChatRoom> {
@@ -28,8 +27,20 @@ export class ChatRoomService {
       return chatRoom.save();
     });
   }
+
   async findAll(): Promise<ChatRoom[]> {
     return this.chatRoomModel.find().exec();
+  }
+
+  async joinRoom(roomId: string, userId: string): Promise<ChatRoom> {
+    const res = await this.chatRoomModel
+      .findOneAndUpdate(
+        { _id: new Types.ObjectId(roomId) },
+        { $addToSet: { userIds: new Types.ObjectId(userId) } },
+        { new: true, rawResult: true },
+      )
+      .exec();
+    return res.value;
   }
 
   async getUsersInRoom(roomId: string): Promise<User[]> {
@@ -44,17 +55,29 @@ export class ChatRoomService {
     return Promise.all(users).then((users) => users);
   }
 
-  async getAllMessage(roomId: string): Promise<Message[]> {
+  async getAllMessages(roomId: string): Promise<Message[]> {
     return (
-      await this.chatRoomModel.findOne({ _id: roomId }).select("messages -_id")
+      await this.chatRoomModel
+        .findOne({ _id: roomId })
+        .select("messages -_id")
+        .exec()
     ).messages;
   }
-  // async addMessage(userId: string, msg: string): Promise<Message> {
-  //   const message = new this.messageModel({
-  //     user: new Types.ObjectId(userId),
-  //     message: msg,
-  //     createdDate: new Date(),
-  //   });
-  //   return message.save();
-  // }
+  async addMessage(roomId: string, userId: string, content: string) {
+    const res = await this.chatRoomModel.updateOne(
+      {
+        _id: new Types.ObjectId(roomId),
+      },
+      {
+        $push: {
+          messages: {
+            userId: new Types.ObjectId(userId),
+            content: content,
+            createdDate: new Date(),
+          },
+        },
+      },
+    );
+    return res;
+  }
 }

@@ -1,7 +1,16 @@
 import { IsNotEmpty } from "class-validator";
 import { ChatRoomService } from "./chatroom.service";
-import { Body, Controller, Get, Logger, Post, Query } from "@nestjs/common";
-import { ChatRoom } from "../../models/chatroom.schema";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  InternalServerErrorException,
+  Param,
+  Post,
+  Query,
+} from "@nestjs/common";
+import { ChatRoom, Message } from "../../models/chatroom.schema";
 import { User } from "src/models/user.schema";
 export class ChatRoomDto {
   @IsNotEmpty()
@@ -9,22 +18,32 @@ export class ChatRoomDto {
   @IsNotEmpty()
   emails: string[];
 }
+export class JoinRoomDto {
+  @IsNotEmpty()
+  roomId: string;
+
+  @IsNotEmpty()
+  userId: string; // TODO: Read from token
+}
 export class AddMessageDto {
   @IsNotEmpty()
   roomId: string;
+
   @IsNotEmpty()
-  userId: string;
+  userId: string; // TODO: Read from token
+
   @IsNotEmpty()
-  msg: string;
+  content: string;
 }
 
 @Controller("chatroom")
 export class ChatRoomController {
   constructor(private readonly chatRoomService: ChatRoomService) {}
-  @Get("all")
+  @Get()
   async getAllRoom(): Promise<ChatRoom[]> {
     return this.chatRoomService.findAll();
   }
+
   @Post("create")
   createChatRoom(@Body() chatRoomDto: ChatRoomDto): Promise<ChatRoom> {
     // TODO: Now this request allows any participant to be added
@@ -34,13 +53,44 @@ export class ChatRoomController {
     return chatRoom;
   }
 
-  @Get("users")
-  getUsersInRoom(@Query("id") id: string): Promise<User[]> {
-    return this.chatRoomService.getUsersInRoom(id);
+  @Post("join")
+  joinRoom(@Body() joinRoomDto: JoinRoomDto): Promise<ChatRoom> {
+    return this.chatRoomService
+      .joinRoom(joinRoomDto.roomId, joinRoomDto.userId)
+      .then((res) => {
+        if (!res) {
+          throw new BadRequestException("invalid roomId");
+        }
+        return res;
+      });
   }
 
-  // @Post("add-message")
-  // addMessage(@Body() addMessageDto: AddMessageDto) {
-  //   this.chatRoomService.addMessage(addMessageDto.userId, addMessageDto.msg);
-  // }
+  @Get(":roomId/users")
+  getUsersInRoom(@Param("roomId") roomId: string): Promise<User[]> {
+    return this.chatRoomService.getUsersInRoom(roomId);
+  }
+
+  @Get(":roomId/messages")
+  getAllMessages(@Param("roomId") roomId: string): Promise<Message[]> {
+    return this.chatRoomService.getAllMessages(roomId);
+  }
+
+  @Post("add-message")
+  addMessage(@Body() addMessageDto: AddMessageDto) {
+    return this.chatRoomService
+      .addMessage(
+        addMessageDto.roomId,
+        addMessageDto.userId,
+        addMessageDto.content,
+      )
+      .then((res) => {
+        if (!res.acknowledged) {
+          throw new InternalServerErrorException();
+        }
+        if (res.matchedCount < 1) {
+          throw new BadRequestException({ message: "invalid roomId" });
+        }
+        return { message: "success" };
+      });
+  }
 }
