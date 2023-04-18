@@ -1,9 +1,9 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { ChatRoom, Message } from '../../models/chatroom.schema';
-import { ChatRoomDto } from './chatroom.controller';
-import { Injectable, Logger } from '@nestjs/common';
-import { User } from '../../models/user.schema';
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { ChatRoom, Message } from "../../models/chatroom.schema";
+import { ChatRoomDto } from "./chatroom.controller";
+import { Injectable, Logger } from "@nestjs/common";
+import { User } from "../../models/user.schema";
 
 @Injectable()
 export class ChatRoomService {
@@ -26,9 +26,9 @@ export class ChatRoomService {
     return this.chatRoomModel.find().exec();
   }
   async getUsersInRoom(id: string): Promise<any> {
-    return await this.chatRoomModel.findOne({ _id: id }).select('users -_id');
+    return await this.chatRoomModel.findOne({ _id: id }).select("users -_id");
   }
   async sendMessage() {
-    return '';
+    return "";
   }
 }

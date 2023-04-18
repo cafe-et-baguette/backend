@@ -7,12 +7,12 @@ import {
   Req,
   Res,
   UnauthorizedException,
-} from '@nestjs/common';
-import { AuthService } from './auth.service';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { Response, Request } from 'express';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+} from "@nestjs/common";
+import { AuthService } from "./auth.service";
+import * as bcrypt from "bcrypt";
+import { JwtService } from "@nestjs/jwt";
+import { Response, Request } from "express";
+import { IsEmail, IsNotEmpty } from "class-validator";
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -35,21 +35,21 @@ export class LoginUserDto {
   password: string;
 }
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
   ) {}
 
-  @Post('register')
+  @Post("register")
   async register(@Body() createUserDto: CreateUserDto) {
     const { name, email, password } = createUserDto;
 
     const existingUser = await this.authService.findOne({ email });
 
     if (existingUser) {
-      throw new BadRequestException('Email already exists');
+      throw new BadRequestException("Email already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -65,7 +65,7 @@ export class AuthController {
     return user;
   }
 
-  @Post('login')
+  @Post("login")
   async login(
     @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) response: Response,
@@ -76,22 +76,22 @@ export class AuthController {
       !user ||
       !(await bcrypt.compare(loginUserDto.password, user.password))
     ) {
-      throw new BadRequestException('invalemail credentials');
+      throw new BadRequestException("invalemail credentials");
     }
 
     const jwt = await this.jwtService.signAsync({ email: user.email });
 
-    response.cookie('jwt', jwt, { httpOnly: true });
+    response.cookie("jwt", jwt, { httpOnly: true });
 
     return {
-      message: 'success',
+      message: "success",
     };
   }
 
-  @Get('user')
+  @Get("user")
   async user(@Req() request: Request) {
     try {
-      const cookie = request.cookies['jwt'];
+      const cookie = request.cookies["jwt"];
 
       const data = await this.jwtService.verifyAsync(cookie);
 
@@ -99,9 +99,9 @@ export class AuthController {
         throw new UnauthorizedException();
       }
 
-      const user = await this.authService.findOne({ email: data['email'] });
+      const user = await this.authService.findOne({ email: data["email"] });
 
-      const { password, ...result } = user['_doc'];
+      const { password, ...result } = user["_doc"];
 
       return result;
     } catch (e) {
@@ -109,12 +109,12 @@ export class AuthController {
     }
   }
 
-  @Post('logout')
+  @Post("logout")
   async logout(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie('jwt');
+    response.clearCookie("jwt");
 
     return {
-      message: 'success',
+      message: "success",
     };
   }
 }

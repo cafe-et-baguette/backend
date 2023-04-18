@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './modules/auth/auth.module';
-import { ChatRoomModule } from './modules/chatroom/chatroom.module';
-import { ConfigModule } from '@nestjs/config';
+import { Module } from "@nestjs/common";
+import { MongooseModule } from "@nestjs/mongoose";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { AuthModule } from "./modules/auth/auth.module";
+import { ChatRoomModule } from "./modules/chatroom/chatroom.module";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [
