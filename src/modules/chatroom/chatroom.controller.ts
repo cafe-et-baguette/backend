@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 import { ChatRoomService } from './chatroom.service';
 import { Body, Controller, Get, Logger, Post, Query } from '@nestjs/common';
-import { ChatRoom } from 'src/models/chatroom.schema';
+import { ChatRoom } from '../../models/chatroom.schema';
 import { User } from 'src/models/user.schema';
 export class ChatRoomDto {
   @IsNotEmpty()
