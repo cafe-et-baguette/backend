@@ -21,7 +21,7 @@ export class ChatRoom {
   name: string;
 
   @Prop({ type: [MongooseSchema.Types.ObjectId], ref: "User" })
-  users: MongooseSchema.Types.ObjectId[];
+  userIds: MongooseSchema.Types.ObjectId[];
 
   @Prop({ type: [MessageSchema], default: [] })
   messages: Message[];
