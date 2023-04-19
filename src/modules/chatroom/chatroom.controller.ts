@@ -8,7 +8,6 @@ import {
   InternalServerErrorException,
   Param,
   Post,
-  Query,
 } from "@nestjs/common";
 import { ChatRoom, Message } from "../../models/chatroom.schema";
 import { User } from "src/models/user.schema";
@@ -83,11 +82,11 @@ export class ChatRoomController {
         addMessageDto.userId,
         addMessageDto.content,
       )
-      .then((res) => {
-        if (!res.acknowledged) {
+      .then(({ updateResult }) => {
+        if (!updateResult.acknowledged) {
           throw new InternalServerErrorException();
         }
-        if (res.matchedCount < 1) {
+        if (updateResult.matchedCount < 1) {
           throw new BadRequestException({ message: "invalid roomId" });
         }
         return { message: "success" };
