@@ -63,7 +63,9 @@ export class ChatRoomService {
         .exec()
     ).messages;
   }
+
   async addMessage(roomId: string, userId: string, content: string) {
+    const messageCreatedDate = new Date();
     const res = await this.chatRoomModel.updateOne(
       {
         _id: new Types.ObjectId(roomId),
@@ -73,11 +75,11 @@ export class ChatRoomService {
           messages: {
             userId: new Types.ObjectId(userId),
             content: content,
-            createdDate: new Date(),
+            createdDate: messageCreatedDate,
           },
         },
       },
     );
-    return res;
+    return { updateResult: res, createdDate: messageCreatedDate };
   }
 }

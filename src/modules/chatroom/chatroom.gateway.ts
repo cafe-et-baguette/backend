@@ -1,4 +1,3 @@
-import { Logger } from "@nestjs/common";
 import {
   MessageBody,
   SubscribeMessage,
@@ -13,6 +12,7 @@ export type ChatMessageResponse = {
   userId: string;
   roomId: string;
   content: string;
+  createdDate: Date;
 };
 
 @WebSocketGateway({ cors: true })
@@ -29,21 +29,39 @@ export class ChatRoomGateway {
     @MessageBody("content") content: string,
   ): Promise<WsResponse<unknown>> {
     // Add Message to Database
-    await this.chatRoomService.addMessage(roomId, userId, content);
+    return this.chatRoomService
+      .addMessage(roomId, userId, content)
+      .then(({ updateResult, createdDate }) => {
+        // Check mongodb update result
+        if (!updateResult.acknowledged) {
+          return {
+            event: "fail",
+            data: "internal server error",
+          };
+        }
+        if (updateResult.matchedCount < 1) {
+          return {
+            event: "fail",
+            data: "invalid room id",
+          };
+        }
 
-    const chatMessageResponse: ChatMessageResponse = {
-      userId: userId,
-      roomId: roomId,
-      content: content,
-    };
+        // Build Response
+        const chatMessageResponse: ChatMessageResponse = {
+          userId: userId,
+          roomId: roomId,
+          content: content,
+          createdDate: createdDate,
+        };
 
-    // Broadcast message to everyone listening
-    this.server.emit("broadcast", chatMessageResponse);
+        // Broadcast message to everyone listening
+        this.server.emit("broadcast", chatMessageResponse);
 
-    // Return received message to sender
-    return {
-      event: "response",
-      data: chatMessageResponse,
-    };
+        // Return received message to sender
+        return {
+          event: "success",
+          data: chatMessageResponse,
+        };
+      });
   }
 }
