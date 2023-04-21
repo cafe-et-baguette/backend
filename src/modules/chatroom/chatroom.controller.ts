@@ -59,6 +59,7 @@ export class ChatRoomController {
     return chatRoom;
   }
 
+  @Post("join")
   async joinRoom(
     @Req() request: Request,
     @Body() joinRoomDto: JoinRoomDto,
