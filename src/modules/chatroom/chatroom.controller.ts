@@ -8,8 +8,12 @@ import {
   InternalServerErrorException,
   Param,
   Post,
+  Req,
+  UnauthorizedException,
 } from "@nestjs/common";
+import { Request } from "express";
 import { ChatRoom, Message } from "../../models/chatroom.schema";
+import { JwtService } from "@nestjs/jwt";
 import { User } from "src/models/user.schema";
 export class ChatRoomDto {
   @IsNotEmpty()
@@ -37,7 +41,10 @@ export class AddMessageDto {
 
 @Controller("chatroom")
 export class ChatRoomController {
-  constructor(private readonly chatRoomService: ChatRoomService) {}
+  constructor(
+    private readonly chatRoomService: ChatRoomService,
+    private readonly jwtService: JwtService,
+  ) {}
   @Get()
   async getAllRoom(): Promise<ChatRoom[]> {
     return this.chatRoomService.findAll();
@@ -52,8 +59,21 @@ export class ChatRoomController {
     return chatRoom;
   }
 
-  @Post("join")
-  joinRoom(@Body() joinRoomDto: JoinRoomDto): Promise<ChatRoom> {
+  async joinRoom(
+    @Req() request: Request,
+    @Body() joinRoomDto: JoinRoomDto,
+  ): Promise<ChatRoom> {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+
     return this.chatRoomService
       .joinRoom(joinRoomDto.roomId, joinRoomDto.userId)
       .then((res) => {
@@ -75,7 +95,21 @@ export class ChatRoomController {
   }
 
   @Post("add-message")
-  addMessage(@Body() addMessageDto: AddMessageDto) {
+  async addMessage(
+    @Req() request: Request,
+    @Body() addMessageDto: AddMessageDto,
+  ) {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+
     return this.chatRoomService
       .addMessage(
         addMessageDto.roomId,
