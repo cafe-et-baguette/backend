@@ -5,6 +5,8 @@ import { ChatRoom, ChatRoomSchema } from "../../models/chatroom.schema";
 import { MongooseModule } from "@nestjs/mongoose";
 import { User, UserSchema } from "../../models/user.schema";
 import { ChatRoomGateway } from "./chatroom.gateway";
+import { JwtModule } from "@nestjs/jwt";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -12,6 +14,14 @@ import { ChatRoomGateway } from "./chatroom.gateway";
       { name: User.name, schema: UserSchema },
       { name: ChatRoom.name, schema: ChatRoomSchema },
     ]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get("SECRET_KEY"),
+        signOptions: { expiresIn: configService.get("JWT_EXPIRES_IN") },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [ChatRoomController],
   providers: [ChatRoomService, ChatRoomGateway],
