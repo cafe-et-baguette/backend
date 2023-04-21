@@ -24,9 +24,6 @@ export class ChatRoomDto {
 export class JoinRoomDto {
   @IsNotEmpty()
   roomId: string;
-
-  @IsNotEmpty()
-  userId: string; // TODO: Read from token
 }
 export class AddMessageDto {
   @IsNotEmpty()
@@ -45,6 +42,7 @@ export class ChatRoomController {
     private readonly chatRoomService: ChatRoomService,
     private readonly jwtService: JwtService,
   ) {}
+
   @Get()
   async getAllRoom(): Promise<ChatRoom[]> {
     return this.chatRoomService.findAll();
@@ -59,6 +57,21 @@ export class ChatRoomController {
     return chatRoom;
   }
 
+  @Get("my")
+  async myRoom(@Req() request: Request) {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+      return this.chatRoomService.findUserRooms(data["email"]);
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+  }
+
   @Post("join")
   async joinRoom(
     @Req() request: Request,
@@ -71,18 +84,18 @@ export class ChatRoomController {
       if (!data) {
         throw new UnauthorizedException();
       }
+
+      return this.chatRoomService
+        .joinRoom(joinRoomDto.roomId, data["email"])
+        .then((res) => {
+          if (!res) {
+            throw new BadRequestException("invalid roomId");
+          }
+          return res;
+        });
     } catch (e) {
       throw new UnauthorizedException();
     }
-
-    return this.chatRoomService
-      .joinRoom(joinRoomDto.roomId, joinRoomDto.userId)
-      .then((res) => {
-        if (!res) {
-          throw new BadRequestException("invalid roomId");
-        }
-        return res;
-      });
   }
 
   @Get(":roomId/users")

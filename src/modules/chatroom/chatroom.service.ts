@@ -28,19 +28,32 @@ export class ChatRoomService {
     });
   }
 
-  async findAll(): Promise<ChatRoom[]> {
+  findAll(): Promise<ChatRoom[]> {
     return this.chatRoomModel.find().exec();
   }
 
-  async joinRoom(roomId: string, userId: string): Promise<ChatRoom> {
-    const res = await this.chatRoomModel
-      .findOneAndUpdate(
-        { _id: new Types.ObjectId(roomId) },
-        { $addToSet: { userIds: new Types.ObjectId(userId) } },
-        { new: true, rawResult: true },
-      )
-      .exec();
-    return res.value;
+  async emailToUserId(email: string): Promise<Types.ObjectId> {
+    return (await this.userModel.findOne({ email: email }).exec())._id;
+  }
+
+  findUserRooms(email: string): Promise<ChatRoom[]> {
+    return this.emailToUserId(email).then((userId) =>
+      this.chatRoomModel.find().elemMatch("userIds", { $eq: userId }).exec(),
+    );
+  }
+
+  async joinRoom(roomId: string, email: string): Promise<ChatRoom> {
+    return this.emailToUserId(email).then(async (userId) => {
+      return (
+        await this.chatRoomModel
+          .findOneAndUpdate(
+            { _id: new Types.ObjectId(roomId) },
+            { $addToSet: { userIds: userId } },
+            { new: true, rawResult: true },
+          )
+          .exec()
+      ).value;
+    });
   }
 
   async getUsersInRoom(roomId: string): Promise<User[]> {
