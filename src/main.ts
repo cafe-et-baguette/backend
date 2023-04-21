@@ -7,9 +7,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
-  app.enableCors();
+  app.enableCors({
+    origin: ["http://localhost:3000", "https://cafe-et-baguette.noppakorn.com"],
+    credentials: true,
+  });
   app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(8000);
 }
+
 bootstrap();
