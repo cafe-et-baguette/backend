@@ -7,6 +7,7 @@ import {
 } from "@nestjs/websockets";
 import { Server } from "socket.io";
 import { ChatRoomService } from "./chatroom.service";
+import { BadRequestException } from "@nestjs/common";
 
 export type ChatMessageResponse = {
   userId: string;
@@ -28,6 +29,14 @@ export class ChatRoomGateway {
     @MessageBody("userId") userId: string,
     @MessageBody("content") content: string,
   ): Promise<WsResponse<unknown>> {
+    // Check user id
+    const validUserId = await this.chatRoomService.checkUserId(userId);
+    if (!validUserId) {
+      return {
+        event: "fail",
+        data: "invalid user id",
+      };
+    }
     // Add Message to Database
     return this.chatRoomService
       .addMessage(roomId, userId, content)
