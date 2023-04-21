@@ -82,4 +82,15 @@ export class ChatRoomService {
     );
     return { updateResult: res, createdDate: messageCreatedDate };
   }
+
+  async checkUserId(userId: string): Promise<boolean> {
+    try {
+      const res = await this.userModel
+        .countDocuments({ _id: new Types.ObjectId(userId) })
+        .exec();
+      return res > 0;
+    } catch {
+      return false;
+    }
+  }
 }
