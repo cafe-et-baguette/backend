@@ -1,4 +1,4 @@
-import { IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty } from "class-validator";
 import { ChatRoomService } from "./chatroom.service";
 import {
   BadRequestException,
@@ -24,6 +24,14 @@ export class ChatRoomDto {
 export class JoinRoomDto {
   @IsNotEmpty()
   roomId: string;
+}
+export class InviteDto {
+  @IsNotEmpty()
+  roomId: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
 }
 export class AddMessageDto {
   @IsNotEmpty()
@@ -106,6 +114,32 @@ export class ChatRoomController {
     } catch (e) {
       throw new UnauthorizedException();
     }
+  }
+
+  @Post("invite")
+  async inviteUser(@Req() request: Request, @Body() inviteDto: InviteDto) {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+
+    return await this.chatRoomService
+      .joinRoom(inviteDto.roomId, inviteDto.email)
+      .then((res) => {
+        if (!res) {
+          throw new BadRequestException("invalid roomId");
+        }
+        return res;
+      })
+      .then(() => {
+        message: "success";
+      });
   }
 
   @Get(":roomId/users")
