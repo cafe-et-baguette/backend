@@ -49,12 +49,22 @@ export class ChatRoomController {
   }
 
   @Post("create")
-  createChatRoom(@Body() chatRoomDto: ChatRoomDto): Promise<ChatRoom> {
-    // TODO: Now this request allows any participant to be added
-    // TODO: it should automatically add the requested user (self) to the room
-    // TODO: then only accept additional user that can be self
-    const chatRoom = this.chatRoomService.create(chatRoomDto);
-    return chatRoom;
+  async createChatRoom(
+    @Req() request: Request,
+    @Body() chatRoomDto: ChatRoomDto,
+  ): Promise<ChatRoom> {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+
+      return this.chatRoomService.create(data["email"], chatRoomDto);
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
   }
 
   @Get("my")

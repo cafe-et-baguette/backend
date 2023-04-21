@@ -12,12 +12,16 @@ export class ChatRoomService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  async create(chatRoomDto: ChatRoomDto): Promise<ChatRoom> {
-    const userIds: Promise<Types.ObjectId>[] = chatRoomDto.emails.map(
-      async (email) => {
-        return (await this.userModel.findOne({ email: email }).exec())._id;
-      },
-    );
+  async create(
+    creatorUserEmail: string,
+    chatRoomDto: ChatRoomDto,
+  ): Promise<ChatRoom> {
+    const userIds: Promise<Types.ObjectId>[] = [
+      creatorUserEmail,
+      ...chatRoomDto.emails,
+    ].map(async (email) => {
+      return (await this.userModel.findOne({ email: email }).exec())._id;
+    });
 
     return Promise.all(userIds).then((userIds) => {
       const chatRoom = new this.chatRoomModel({
