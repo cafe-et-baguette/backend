@@ -17,4 +17,8 @@ export class AuthService {
   async findOne(condition: any): Promise<User> {
     return this.userModel.findOne(condition).exec();
   }
+
+  async userById(userId: string): Promise<User> {
+    return this.userModel.findOne({ _id: userId }).select("name email").exec();
+  }
 }
