@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   Res,
@@ -13,6 +14,7 @@ import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { Response, Request } from "express";
 import { IsEmail, IsNotEmpty } from "class-validator";
+import { Types } from "mongoose";
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -33,6 +35,11 @@ export class LoginUserDto {
 
   @IsNotEmpty()
   password: string;
+}
+
+export class UserResponse {
+  name: string;
+  email: string;
 }
 
 @Controller("auth")
@@ -108,6 +115,17 @@ export class AuthController {
       throw new UnauthorizedException();
     }
   }
+
+  @Get("user/:userId")
+  async userById(@Param("userId") userId: string): Promise<UserResponse> {
+    const user = await this.authService.findOne({
+      _id: new Types.ObjectId(userId),
+    });
+    return {
+      name: user.name,
+      email: user.email,
+    };
+  } // TODO: Check token?
 
   @Post("logout")
   async logout(@Res({ passthrough: true }) response: Response) {
