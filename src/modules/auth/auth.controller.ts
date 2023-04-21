@@ -84,12 +84,16 @@ export class AuthController {
       !user ||
       !(await bcrypt.compare(loginUserDto.password, user.password))
     ) {
-      throw new BadRequestException("invalemail credentials");
+      throw new BadRequestException("invalid email credentials");
     }
 
     const jwt = await this.jwtService.signAsync({ email: user.email });
 
-    response.cookie("jwt", jwt, { httpOnly: true });
+    response.cookie("jwt", jwt, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
 
     return {
       message: "success",
