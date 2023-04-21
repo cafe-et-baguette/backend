@@ -1,4 +1,4 @@
-import { IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty } from "class-validator";
 import { ChatRoomService } from "./chatroom.service";
 import {
   BadRequestException,
@@ -24,9 +24,14 @@ export class ChatRoomDto {
 export class JoinRoomDto {
   @IsNotEmpty()
   roomId: string;
+}
+export class InviteDto {
+  @IsNotEmpty()
+  roomId: string;
 
   @IsNotEmpty()
-  userId: string; // TODO: Read from token
+  @IsEmail()
+  email: string;
 }
 export class AddMessageDto {
   @IsNotEmpty()
@@ -45,20 +50,47 @@ export class ChatRoomController {
     private readonly chatRoomService: ChatRoomService,
     private readonly jwtService: JwtService,
   ) {}
+
   @Get()
   async getAllRoom(): Promise<ChatRoom[]> {
     return this.chatRoomService.findAll();
   }
 
   @Post("create")
-  createChatRoom(@Body() chatRoomDto: ChatRoomDto): Promise<ChatRoom> {
-    // TODO: Now this request allows any participant to be added
-    // TODO: it should automatically add the requested user (self) to the room
-    // TODO: then only accept additional user that can be self
-    const chatRoom = this.chatRoomService.create(chatRoomDto);
-    return chatRoom;
+  async createChatRoom(
+    @Req() request: Request,
+    @Body() chatRoomDto: ChatRoomDto,
+  ): Promise<ChatRoom> {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+
+      return this.chatRoomService.create(data["email"], chatRoomDto);
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
   }
 
+  @Get("my")
+  async myRoom(@Req() request: Request) {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+      return this.chatRoomService.findUserRooms(data["email"]);
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+  }
+
+  @Post("join")
   async joinRoom(
     @Req() request: Request,
     @Body() joinRoomDto: JoinRoomDto,
@@ -70,17 +102,43 @@ export class ChatRoomController {
       if (!data) {
         throw new UnauthorizedException();
       }
+
+      return this.chatRoomService
+        .joinRoom(joinRoomDto.roomId, data["email"])
+        .then((res) => {
+          if (!res) {
+            throw new BadRequestException("invalid roomId");
+          }
+          return res;
+        });
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+  }
+
+  @Post("invite")
+  async inviteUser(@Req() request: Request, @Body() inviteDto: InviteDto) {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
     } catch (e) {
       throw new UnauthorizedException();
     }
 
-    return this.chatRoomService
-      .joinRoom(joinRoomDto.roomId, joinRoomDto.userId)
+    return await this.chatRoomService
+      .joinRoom(inviteDto.roomId, inviteDto.email)
       .then((res) => {
         if (!res) {
           throw new BadRequestException("invalid roomId");
         }
         return res;
+      })
+      .then(() => {
+        message: "success";
       });
   }
 
