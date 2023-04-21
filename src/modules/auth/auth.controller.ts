@@ -15,6 +15,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Response, Request } from "express";
 import { IsEmail, IsNotEmpty } from "class-validator";
 import { Types } from "mongoose";
+import { User } from "src/models/user.schema";
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -117,14 +118,8 @@ export class AuthController {
   }
 
   @Get("user/:userId")
-  async userById(@Param("userId") userId: string): Promise<UserResponse> {
-    const user = await this.authService.findOne({
-      _id: new Types.ObjectId(userId),
-    });
-    return {
-      name: user.name,
-      email: user.email,
-    };
+  async userById(@Param("userId") userId: string): Promise<User> {
+    return this.authService.userById(userId);
   } // TODO: Check token?
 
   @Post("logout")
