@@ -122,9 +122,37 @@ export class AuthController {
   }
 
   @Get("user/:userId")
-  async userById(@Param("userId") userId: string): Promise<User> {
+  async userById(
+    @Req() request: Request,
+    @Param("userId") userId: string,
+  ): Promise<User> {
+    const cookie = request.cookies["jwt"];
+    const data = await this.jwtService.verifyAsync(cookie);
+
+    if (!data) {
+      throw new UnauthorizedException();
+    }
+
     return this.authService.userById(userId);
-  } // TODO: Check token?
+  }
+
+  @Post("rename/:userId")
+  async rename(
+    @Req() request: Request,
+    @Param("userId") userId: string,
+    @Body() body: { name: string },
+  ): Promise<User> {
+    const cookie = request.cookies["jwt"];
+    const data = await this.jwtService.verifyAsync(cookie);
+
+    if (!data) {
+      throw new UnauthorizedException();
+    }
+
+    const newName = body.name;
+
+    return this.authService.renameUser(userId, newName);
+  }
 
   @Post("logout")
   async logout(@Res({ passthrough: true }) response: Response) {
