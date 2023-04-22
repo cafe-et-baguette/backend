@@ -98,6 +98,11 @@ export class AuthController {
     };
   }
 
+  @Get("users")
+  async getAll() {
+    return this.authService.findAll();
+  }
+
   @Get("user")
   async user(@Req() request: Request) {
     try {

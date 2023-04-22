@@ -18,6 +18,10 @@ export class AuthService {
     return this.userModel.findOne(condition).exec();
   }
 
+  async findAll(): Promise<UserDocument[]> {
+    return this.userModel.find().exec();
+  }
+
   async renameUser(userId: string, newName: string): Promise<User> {
     const user = await this.userModel.findById(userId);
 
