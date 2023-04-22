@@ -156,7 +156,7 @@ export class AuthController {
 
   @Post("logout")
   async logout(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie("jwt");
+    response.clearCookie("jwt", { expires: new Date(0) });
 
     return {
       message: "success",
