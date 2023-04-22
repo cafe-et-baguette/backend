@@ -92,7 +92,7 @@ export class AuthController {
     response.cookie("jwt", jwt, {
       httpOnly: true,
       sameSite: "none",
-      secure: true,
+      //   secure: true,
     });
 
     return {
@@ -134,6 +134,24 @@ export class AuthController {
     }
 
     return this.authService.userById(userId);
+  }
+
+  @Post("rename/:userId")
+  async rename(
+    @Req() request: Request,
+    @Param("userId") userId: string,
+    @Body() body: { name: string },
+  ): Promise<User> {
+    const cookie = request.cookies["jwt"];
+    const data = await this.jwtService.verifyAsync(cookie);
+
+    if (!data) {
+      throw new UnauthorizedException();
+    }
+
+    const newName = body.name;
+
+    return this.authService.renameUser(userId, newName);
   }
 
   @Post("logout")

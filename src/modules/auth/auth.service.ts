@@ -18,6 +18,18 @@ export class AuthService {
     return this.userModel.findOne(condition).exec();
   }
 
+  async renameUser(userId: string, newName: string): Promise<User> {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    user.name = newName;
+
+    return user.save();
+  }
+
   async userById(userId: string): Promise<User> {
     return this.userModel.findOne({ _id: userId }).select("name email").exec();
   }
