@@ -91,6 +91,8 @@ export class AuthController {
 
     response.cookie("jwt", jwt, {
       httpOnly: true,
+      sameSite: "none",
+      secure: true,
     });
 
     return {
@@ -159,7 +161,12 @@ export class AuthController {
 
   @Post("logout")
   async logout(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie("jwt", { expires: new Date(0) });
+    response.cookie("jwt", "", {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      expires: new Date(0),
+    });
 
     return {
       message: "success",
