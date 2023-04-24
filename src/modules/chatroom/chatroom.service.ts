@@ -36,6 +36,12 @@ export class ChatRoomService {
     return this.chatRoomModel.find().exec();
   }
 
+  findRoomById(roomId: string): Promise<ChatRoom> {
+    return this.chatRoomModel
+      .findOne({ _id: new Types.ObjectId(roomId) })
+      .exec();
+  }
+
   async emailToUserId(email: string): Promise<Types.ObjectId> {
     return (await this.userModel.findOne({ email: email }).exec())._id;
   }
