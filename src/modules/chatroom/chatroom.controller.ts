@@ -56,7 +56,7 @@ export class ChatRoomController {
     return this.chatRoomService.findAll();
   }
 
-  @Get(":roomId")
+  @Get("/id/:roomId")
   async getRoomById(@Param("roomId") roomId: string): Promise<ChatRoom> {
     return this.chatRoomService.findRoomById(roomId);
   }
