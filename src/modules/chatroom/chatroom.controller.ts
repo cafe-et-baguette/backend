@@ -57,8 +57,22 @@ export class ChatRoomController {
   }
 
   @Get("/id/:roomId")
-  async getRoomById(@Param("roomId") roomId: string): Promise<ChatRoom> {
-    return this.chatRoomService.findRoomById(roomId);
+  async getRoomById(
+    @Req() request: Request,
+    @Param("roomId") roomId: string,
+  ): Promise<ChatRoom> {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+
+      return this.chatRoomService.findRoomById(roomId);
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
   }
 
   @Post("create")
@@ -148,12 +162,39 @@ export class ChatRoomController {
   }
 
   @Get(":roomId/users")
-  getUsersInRoom(@Param("roomId") roomId: string): Promise<User[]> {
+  async getUsersInRoom(
+    @Req() request: Request,
+    @Param("roomId") roomId: string,
+  ): Promise<User[]> {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+
     return this.chatRoomService.getUsersInRoom(roomId);
   }
 
   @Get(":roomId/messages")
-  getAllMessages(@Param("roomId") roomId: string): Promise<Message[]> {
+  async getAllMessages(
+    @Req() request: Request,
+    @Param("roomId") roomId: string,
+  ): Promise<Message[]> {
+    try {
+      const cookie = request.cookies["jwt"];
+      const data = await this.jwtService.verifyAsync(cookie);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
     return this.chatRoomService.getAllMessages(roomId);
   }
 
